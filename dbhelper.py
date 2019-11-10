@@ -32,14 +32,14 @@ class DBHelper:
         """
         #运算符字典
         ops = {
-            'ne':'!=',
-            'gt':'>',
-            'ge':'>=',
-            'lt':'<',
-            'le':'<=',
-            'contains':'like',
-            'in':'in',
-            'nin':'not in'
+            'ne': '!=',
+            'gt': '>',
+            'ge': '>=',
+            'lt': '<',
+            'le': '<=',
+            'contains': 'like',
+            'in': 'in',
+            'nin': 'not in'
         }
         result = " where "
         for key in kwargs: # 遍历条件
@@ -151,7 +151,7 @@ class DBHelper:
                     result += keys[0] + '= ' + kwargs[key] + 'and'  # 不是字符串就不加引号赋值
 
         result = result.strip(' and ')  # 去掉最后拼接完最后的and
-        self.params['HAVING'] = result  # 用result替换 WHERE
+        self.params['HAVING'] = result  # 用result替换 Having
         return self  # 返回
 
     #获取查询结构
@@ -178,7 +178,7 @@ class DBHelper:
     # 修改记录
     def update(self,**kwargs):
         """
-        :param kwargs: sname='tom',sage=20 ==> 'sname='tom','sage'=20'
+        :param kwargs: sname='tom',sage=20 ==> 'sname='tom',sage=20'
         :return:
         """
         #1.把参数值是字符串的两边添加单引号，并且转意
@@ -201,6 +201,60 @@ class DBHelper:
             self.conn.rollback()
             return False
 
+    def delete(self,**kwargs):
+        """
+        :param kwargs: name = 'tom'
+        :return:
+        """
+        kwargs = {key: "'" + value + "'" if isinstance(value, str) else value for key, value in kwargs.items()}
+        res = ','.join([key + "=" + str(value) for key, value in kwargs.items()])
+        print(res)
+        self.params['KRYVALUE'] = res
+        sql = " DELETE FROM {tables} {KRYVALUE} {WHERE} }".format(**self.params)
+        print(sql)
+        return self.excute(sql)
+
+    def ydel(self,sql):
+        self.sql = sql
+        self.init_param()
+        try:
+            self.cursor.execute(sql)
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(e)
+            self.conn.rollback()
+            return False
+
+    # 插入数据
+    def insert(self,**kwargs):
+        """
+        :param kwargs:  (name,age) values ('tom',20)
+        :return:
+        """
+        kwargs = {key : "'" + value + "'" if isinstance(value, str) else value for key, value in kwargs.items()}
+        res = ''.join([key + "=" + str(value) for key, value in kwargs.items()])
+        print(res)
+        res = res.strip("=")
+        print(res)
+        self.params['KEY'] = res[0]
+        self.params['VALUE'] = res[1]
+        sql = "INSERT INTO {tables} {KEY} VALUES {VALUE}".format(**self.params)
+        print(sql)
+        return self.excute(sql)
+    def insters(self,sql):
+        self.sql = sql
+        self.init_param()
+        try:
+            self.cursor.execute(sql)
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(e)
+            self.conn.rollback()
+            return False
+
+
     """
     db.getByxxx()
     db.count()
@@ -212,5 +266,5 @@ if __name__ == '__main__':
     # print(db.params)
     # date = db.table('student').fields('sname,sclass').select()
     # print(date)
-    date1 = db.table('student').where(sclass__ne='95033').select()
-    print(date1)
+    # date1 = db.table('student').where(sclass__ne='95033').select()
+    # print(date1)
